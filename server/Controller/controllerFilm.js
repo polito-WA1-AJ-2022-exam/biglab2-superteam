@@ -1,4 +1,5 @@
 'use strict';
+const dayjs=require('dayjs');
 
 /* ---------- ERROR MESSAGES ---------- */
 const ERROR_400 = {error: 'BAD REQUEST'};
@@ -122,9 +123,36 @@ class FilmController {
         }
 
         /* QUERYING THE DATABASE */
+        let result_SQL;
+        try {
+            const query_SQL = "SELECT * FROM films";
+            result_SQL = await this.dao.all(query_SQL, (error, rows) => {
+                if (error) {
+                    return response.status(500).json(ERROR_500);
+                }
+            });
+        } catch (error)  {
+            console.log(error);
+            return response.status(500).json(ERROR_500);
+        }
+
+        /*filtering the films*/
+        let films=result_SQL;
+        let filterName=request.params.filter;
+        if (filterName == "all") {
+            films = films;
+        } else if (filterName =="favorites") {
+            films = films.filter((film) => (film.favorite == 1));
+        } else if (filterName == "best-rated") {
+            films = films.filter((film) => (film.rating == 5));
+        } else if (filterName == "last-seen") {
+            films = films.filter((film) => (dayjs().diff(dayjs(film.watchdate, "MMMM DD, YYYY"), 'day') <= 30 && film.watchdate != undefined));
+        } else if (filterName =="unseen") {
+            films = films.filter((film) => (film.date == undefined));
+        }
 
         /* RETURN 200 ON SUCCESS */
-        return response.status(200).json();
+        return response.status(200).json(films);
     }
 
 
