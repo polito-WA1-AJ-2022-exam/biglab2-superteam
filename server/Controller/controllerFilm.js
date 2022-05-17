@@ -26,6 +26,35 @@ function validateFilter(filter) {
     return false;
 }
 
+/**
+ * 
+ * @param {DAO} dao 
+ * @param {String} id 
+ * @returns "1" if the film is found in the DB, "0" otherwise. "-1" is returned in case of errors.
+ */
+async function validateId(dao, id) {
+
+    /* QUERYING THE DATABASE TO CHECK IF ID EXISTS */
+    let result_SQL;
+    try {
+        const query_SQL = "SELECT * FROM films WHERE id == ?";
+        result_SQL = await dao.all(query_SQL, [id], (error, rows) => {
+            if (error) {
+                return -1;
+            }
+        });
+
+        if (result_SQL.length === 0) {
+            return 0;
+        }
+    } catch (error)  {
+        console.log(error);
+        return -1;
+    }
+
+    return 1;
+}
+
 /* ---------- CONTROLLER CLASS ---------- */
 class FilmController {
 
@@ -228,21 +257,11 @@ class FilmController {
         }
 
         /* QUERYING THE DATABASE TO CHECK IF ID EXISTS */
-        let result_SQL;
-        try {
-            const query_SQL = "SELECT * FROM films WHERE id == ?";
-            result_SQL = await this.dao.all(query_SQL, [target_id], (error, rows) => {
-                if (error) {
-                    return response.status(500).json(ERROR_500);
-                }
-            });
-
-            if (result_SQL.length === 0) {
-                return response.status(404).json(ERROR_404);
-            }
-        } catch (error)  {
-            console.log(error);
+        let exist = await validateId(this.dao, target_id);
+        if (exist === -1) {
             return response.status(500).json(ERROR_500);
+        } else if (exist === 0) {
+            return response.status(404).json(ERROR_404);
         }
 
         /* UPDATING THE DATABASE */
@@ -286,21 +305,11 @@ class FilmController {
         }
 
         /* QUERYING THE DATABASE TO CHECK IF ID EXISTS */
-        let result_SQL;
-        try {
-            const query_SQL = "SELECT * FROM films WHERE id == ?";
-            result_SQL = await this.dao.all(query_SQL, [target_id], (error, rows) => {
-                if (error) {
-                    return response.status(500).json(ERROR_500);
-                }
-            });
-
-            if (result_SQL.length === 0) {
-                return response.status(404).json(ERROR_404);
-            }
-        } catch (error)  {
-            console.log(error);
+        let exist = await validateId(this.dao, target_id);
+        if (exist === -1) {
             return response.status(500).json(ERROR_500);
+        } else if (exist === 0) {
+            return response.status(404).json(ERROR_404);
         }
 
         /* UPDATING THE DATABASE */
@@ -341,21 +350,11 @@ class FilmController {
         }
 
         /* QUERYING THE DATABASE TO CHECK IF ID EXISTS */
-        let result_SQL;
-        try {
-            const query_SQL = "SELECT * FROM films WHERE id == ?";
-            result_SQL = await this.dao.all(query_SQL, [target_id], (error, rows) => {
-                if (error) {
-                    return response.status(500).json(ERROR_500);
-                }
-            });
-
-            if (result_SQL.length === 0) {
-                return response.status(404).json(ERROR_404);
-            }
-        } catch (error)  {
-            console.log(error);
+        let exist = await validateId(this.dao, target_id);
+        if (exist === -1) {
             return response.status(500).json(ERROR_500);
+        } else if (exist === 0) {
+            return response.status(404).json(ERROR_404);
         }
 
         /* UPDATING THE DATABASE */
