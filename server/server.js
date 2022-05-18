@@ -6,8 +6,10 @@ const router_FILM = require("./Router/routerFilm");
 /* ---------- EXPRESS MODULE ---------- */
 const express   = require("express");
 const app       = new express();
+const cors=require("cors");
 const PORT      = 3001;
 app.use(express.json());
+app.use(cors());
 
 /* ---------- ENABLING ROUTER TO DISPATCH API ---------- */
 app.use("/", router_FILM);

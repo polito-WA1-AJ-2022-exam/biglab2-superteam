@@ -32,7 +32,7 @@ router.get("/films", controller.getFilms);
  *  described in BigLab1).
  *  ---------------------------------------------
 */
-router.get("/films/filter/:filter", controller.getFilteredFilms);
+router.get("/films/:filter", controller.getFilteredFilms);
 
 /**
  *  API:

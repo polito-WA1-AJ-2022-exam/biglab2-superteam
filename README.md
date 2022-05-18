@@ -69,7 +69,7 @@ If you decide to add additional users, please remember to add them to this table
 ---
 - **API: `GET /films/filter/:filter`**
 \
-    `GET /films/filter/:filter`
+    `GET /films/:filter`
     Retrieve a list of all the films that fulfill a given filter (i.e., the same filters described in BigLab1).
     - **Request header** has a line: `Content-Type: application/json` and `:filter` parameter to select the filter.
     - **Request body** is empty.

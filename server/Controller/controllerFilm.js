@@ -148,9 +148,8 @@ class FilmController {
         } else if (filterName == "last-seen") {
             films = films.filter((film) => (dayjs().diff(dayjs(film.watchdate, "MMMM DD, YYYY"), 'day') <= 30 && film.watchdate != undefined));
         } else if (filterName =="unseen") {
-            films = films.filter((film) => (film.date == undefined));
+            films = films.filter((film) => (film.watchdate == undefined));
         }
-
         /* RETURN 200 ON SUCCESS */
         return response.status(200).json(films);
     }
