@@ -13,7 +13,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 
 /* IMPORTING CUSTOMIZED COMPONENT */
 import { Film }             from "./utilities/film.js";
-import { readFilms }        from "./utilities/API.js";
+import { apiRemoveFilm, apiAddFilm, readFilms, apiEditFilmFav, apiEditFilm }        from "./utilities/API.js";
 import { HomePage }         from "./components/Home";
 import { NoMatchPage }      from "./components/Home";
 import { RenderFilter }     from "./components/manageFilter";
@@ -42,41 +42,77 @@ function App() {
     load();
   }, []);
 
-  const removeFilm = (id) =>{
-    setFilms((oldFilms)=> (oldFilms.filter((film)=>(film.id!==id))));
-  }
-
-  const editFilm = (id, title, fav, date, rating) =>{
-    let filmMod = new Film(id, title, fav, date, rating);
-
-    var index = 0;
-    for (let i = 0; i < films.length; i++) {
-      if (films[i].id === id) {
-        index = i
-      }
+  /*Error handling still to be implemented*/
+  const removeFilm = async (id) =>{
+    try{
+        setLoading(true);
+        await apiRemoveFilm(id);
+        setFilms((oldFilms)=> (oldFilms.filter((film)=>(film.id!==id))));
+        const list = await readFilms();
+        setFilms(list);
+        setLoading(false);
+    } catch (e){
+      //error handling to be implemented
     }
+  }
 
-    console.log(films);
-    films.splice(index, 1);
-    console.log(films);
-    films.push(filmMod);
+    /*Error handling still to be implemented*/
+  const editFilm = async (id, title, fav, date, rating) =>{
+    let filmMod = new Film(id, title, fav, date, rating);
+    try{
+      setLoading(true);
+      await apiEditFilm(filmMod);
+      const list = await readFilms();
+      setFilms(list);
+      setLoading(false);
+    } catch(e){
+      //error handling to be implemented
+    }
     return filmMod;
   }
 
-  const addFilm = (title, fav, date, rating) =>{
-    let film = new Film((films.length+1), title, fav, date, rating);
-    setFilms((oldFilms)=> ([...oldFilms, film]));
+  /*Error handling still to be implemented*/
+  const addFilm = async (title, fav, date, rating) =>{
+    try{
+      setLoading(true);
+      let film = new Film((films.length+1), title, fav, date, rating);
+      await apiAddFilm(film);
+      setFilms((oldFilms)=> ([...oldFilms, film]));
+      const list = await readFilms();
+      setFilms(list);
+      setLoading(false);
+    } catch (e){
+      //error handling to be implemented
+    }
   }
 
-  const editFilmFav = (filmMod) =>{
-    filmMod.favourite=!(filmMod.favourite);
-    setFilms((oldFilms)=> (oldFilms.map((film)=>((film.id===filmMod.id)?filmMod:film))));
+  /*Error handling still to be implemented*/
+  const editFilmFav = async (filmMod) =>{
+    try{
+      setLoading(true);
+      filmMod.favourite=!(filmMod.favourite);
+      await apiEditFilmFav(filmMod);
+      const list = await readFilms();
+      setFilms(list);
+      setLoading(false);
+    }
+    catch(e){
+    //error handling to be implemented
+    }
     return filmMod;
   }
-
-  const editFilmRating = (filmMod, newrating) =>{
-    filmMod.rating=newrating;
-    setFilms((oldFilms)=> (oldFilms.map((film)=>((film.id===filmMod.id)?filmMod:film))));
+   /*Error handling still to be implemented*/
+  const editFilmRating = async (filmMod, newrating) =>{
+    try{
+      setLoading(true);
+      filmMod.rating=newrating;
+      await apiEditFilm(filmMod);
+      const list = await readFilms();
+      setFilms(list);
+      setLoading(false);
+    } catch(e){
+      //error handling to be implemented
+    }
     return filmMod;
   }
 

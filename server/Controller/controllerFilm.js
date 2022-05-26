@@ -215,10 +215,13 @@ class FilmController {
         /* CHECKING USER REQUEST */
         if (Object.keys(data).length === 0) {
             return response.status(422).json(ERROR_422);
-        } else if (data.title === undefined || data.favorite === undefined || data.watchdate === undefined || data.rating === undefined) {
+        } else if (data.title === undefined) {
             return response.status(422).json(ERROR_422);
         }
-
+        if(data.watchdate===undefined)
+            data.watchdate= null;
+        if(data.rating===undefined)
+            data.rating=null;
         /* QUERYING THE DATABASE */
         let result_SQL;
         try {
@@ -277,11 +280,15 @@ class FilmController {
         /* CHECKING USER REQUEST */
         if (Object.keys(data).length === 0) {
             return response.status(422).json(ERROR_422);
-        } else if (data.title === undefined || data.favorite === undefined || data.watchdate === undefined || data.rating === undefined) {
+        } else if (data.title === undefined || data.favorite === undefined) {
             return response.status(422).json(ERROR_422);
         } else if (/^[0-9]+$/.test(target_id) === false) {
             return response.status(422).json(ERROR_422);
         }
+        if(data.watchdate===undefined)
+            data.watchdate= null;
+        if(data.rating===undefined)
+            data.rating=null;
 
         /* QUERYING THE DATABASE TO CHECK IF ID EXISTS */
         let exist = await validateId(this.dao, target_id);

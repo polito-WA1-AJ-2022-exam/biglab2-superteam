@@ -14,11 +14,12 @@ function FilmRow(props) {
     /* DATA AND STATES USED */
     let arr = [];
     let [fav, setFav] = useState(props.film.favourite);
+    let [color, setColor] =useState(props.film.favourite?'text-danger':'text-dark');
 
     const navigate = useNavigate();
 
     /* COMPUTING WATCHDATE */
-    let watchdate = (props.film.date !== undefined) ? props.film.date.$d.toString().substr(0,15) : "To be seen"
+    let watchdate = (props.film.date.$d.toString()!=="Invalid Date" ) ? props.film.date.$d.toString().substr(0,15) : "To be seen";
 
     /* COMPUTING RATINGS */
     const MAX_RATING = 5;
@@ -29,7 +30,7 @@ function FilmRow(props) {
 
     let trash3FillOnClickHandler = () => {
     
-        if(window.confirm('Are you sure you want to remove this film?') == true) {
+        if(window.confirm('Are you sure you want to remove this film?') === true) {
             props.removeFilm(props.film.id);
             if (props.mode === 'edit' && props.editedFilm.id === props.film.id)
                 props.updateMode('view');
@@ -40,12 +41,13 @@ function FilmRow(props) {
         if (props.mode !== 'edit' && props.editedFilm.id !== props.film.id) {
 
             /* CHECKING IF THE FILM HAS A WATCHDATE */
-            if (props.film.date !== undefined) {
+            if (props.film.date.$d.toString()!=="Invalid Date") {
+                setFav(!props.film.favourite);
                 props.editFilmFav(props.film);
-                setFav(event.target.checked)
             } else {
                 alert("You may not like this one...");
                 event.target.checked = !event.target.checked
+
             }
         }
     }
@@ -54,7 +56,7 @@ function FilmRow(props) {
         if (props.mode !== 'edit' && props.editedFilm.id !== props.film.id)
             
             /* CHECKING IF THE FILM HAS A WATCHDATE */
-            if (film.date !== undefined) {
+            if (props.film.date.$d.toString()!=="Invalid Date") {
 
                 /* CHECKING IF IT IS A CLICK TO REMOVE THE LAST STAR */
                 if (number === 1 && film.rating === 1) {
@@ -78,7 +80,7 @@ function FilmRow(props) {
             </td>
 
             {/* TITLE */}
-            <td className={props.film.favourite === true ? "text-danger" : "text-dark"}>
+            <td className={color}>
                 {props.film.title}
             </td>
 
