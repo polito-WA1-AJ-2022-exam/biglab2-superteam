@@ -2,59 +2,11 @@
 const dayjs=require('dayjs');
 
 /* ---------- ERROR MESSAGES ---------- */
-const ERROR_400 = {error: 'BAD REQUEST'};
-const ERROR_404 = {error: 'NOT FOUND'};
-const ERROR_422 = {error: 'UNPROCESSABLE ENTITY'};
-const ERROR_500 = {error: 'INTERNAL SERVER ERROR'};
-const ERROR_503 = {error: 'SERVICE UNAVAILABLE'};
-
-/* ---------- VALID FILTERS ---------- */
-const VALID_FILTERS = ["all", "favorites", "best-rated", "last-seen", "unseen"];
-
-/**
- * 
- * @param {String} filter 
- * @returns 
- */
-function validateFilter(filter) {
-    var i;
-    for (i = 0; i < VALID_FILTERS.length; i++) {
-        if (VALID_FILTERS[i] === filter) {
-            return true;
-        }
-    }
-
-    return false;
-}
-
-/**
- * 
- * @param {DAO} dao 
- * @param {String} id 
- * @returns "1" if the film is found in the DB, "0" otherwise. "-1" is returned in case of errors.
- */
-async function validateId(dao, id) {
-
-    /* QUERYING THE DATABASE TO CHECK IF ID EXISTS */
-    let result_SQL;
-    try {
-        const query_SQL = "SELECT * FROM films WHERE id == ?";
-        result_SQL = await dao.all(query_SQL, [id], (error, rows) => {
-            if (error) {
-                return -1;
-            }
-        });
-
-        if (result_SQL.length === 0) {
-            return 0;
-        }
-    } catch (error)  {
-        console.log(error);
-        return -1;
-    }
-
-    return 1;
-}
+const MESSG_200 = {code: 200, message: 'OK'}
+const MESSG_201 = {code: 201, message: 'CREATED'};
+const MESSG_204 = {code: 204, message: 'NO CONTENT'};
+const ERROR_404 = {code: 404, message: 'NOT FOUND'};
+const ERROR_422 = {code: 422, message: 'UNPROCESSABLE ENTITY'};
 
 /* ---------- CONTROLLER CLASS ---------- */
 class FilmController {
@@ -66,7 +18,6 @@ class FilmController {
      */
     constructor (input_dao) {
         this.dao = input_dao;
-        this.dao.new;
     }
 
     /**
@@ -74,32 +25,19 @@ class FilmController {
      * ---------------------------------------------
      *                API: GET /films
      * =============================================
-     * @param {callback} request 
-     * @param {callback} response 
     */
-    getFilms = async (request, response) => {
+    getFilms = async () => {
 
-        /* CHECKING USER REQUEST */
-        if (Object.keys(request.body).length !== 0) {
-            return response.status(400).json(ERROR_400);
-        }
-
-        /* QUERYING THE DATABASE */
-        let result_SQL;
         try {
-            const query_SQL = "SELECT * FROM films";
-            result_SQL = await this.dao.all(query_SQL, (error, rows) => {
-                if (error) {
-                    return response.status(500).json(ERROR_500);
-                }
-            });
-        } catch (error)  {
-            console.log(error);
-            return response.status(500).json(ERROR_500);
+            /* retrieving films from DB */
+            const films = await this.dao.getFilms();
+            return {
+                code: 200,
+                message: films
+            }
+        } catch (error) {
+            throw error;
         }
-
-        /* RETURN 200 ON SUCCESS */
-        return response.status(200).json(result_SQL);
     }
 
 
@@ -110,91 +48,54 @@ class FilmController {
      * ---------------------------------------------
      *          API: GET /films/:filter
      * =============================================
-     * @param {callback} request 
-     * @param {callback} response 
+     * @param {String} filter
     */
-    getFilteredFilms = async (request, response) => {
+    getFilteredFilms = async (filter) => {
 
-        /* CHECKING USER REQUEST */
-        if (Object.keys(request.body).length !== 0) {
-            return response.status(400).json(ERROR_400);
-        } else if (validateFilter(request.params.filter) === false) {
-            return response.status(422).json(ERROR_422);
-        }
+        /* retrieving films from DB */
+        let films = await this.dao.getFilms();
 
-        /* QUERYING THE DATABASE */
-        let result_SQL;
-        try {
-            const query_SQL = "SELECT * FROM films";
-            result_SQL = await this.dao.all(query_SQL, (error, rows) => {
-                if (error) {
-                    return response.status(500).json(ERROR_500);
-                }
-            });
-        } catch (error)  {
-            console.log(error);
-            return response.status(500).json(ERROR_500);
-        }
-
-        /*filtering the films*/
-        let films=result_SQL;
-        let filterName=request.params.filter;
-        if (filterName == "all") {
-            films = films;
-        } else if (filterName =="favorites") {
+        /* filtering films */
+        if (filter === 'favorites') {
             films = films.filter((film) => (film.favorite == 1));
-        } else if (filterName == "best-rated") {
+        } else if (filter === 'best-rated') {
             films = films.filter((film) => (film.rating == 5));
-        } else if (filterName == "last-seen") {
+        } else if (filter === 'last-seen') {
             films = films.filter((film) => (dayjs().diff(dayjs(film.watchdate, "MMMM DD, YYYY"), 'day') <= 30 && film.watchdate != undefined));
-        } else if (filterName =="unseen") {
+        } else if (filter === 'unseen') {
             films = films.filter((film) => (film.watchdate == undefined));
         }
-        /* RETURN 200 ON SUCCESS */
-        return response.status(200).json(films);
+
+        return {
+            code: 200,
+            message: films
+        }
     }
 
 
     /**
      * Retrieve a film, given its “id”.
      * ---------------------------------------------
-     *             API: GET /films/:id
+     *             API: GET /film/:id
      * =============================================
-     * @param {callback} request 
-     * @param {callback} response 
+     * @param {Number} id
     */
-    getFilmById = async (request, response) => {
+    getFilmById = async (id) => {
 
-        const target_id = request.params.id;
-
-        /* CHECKING USER REQUEST */
-        if (Object.keys(request.body).length !== 0) {
-            return response.status(400).json(ERROR_400);
-        } else if (/^[0-9]+$/.test(target_id) === false) {
-            return response.status(422).json(ERROR_422);
-        }
-
-        /* QUERYING THE DATABASE */
-        let result_SQL;
         try {
-            const query_SQL = "SELECT * FROM films WHERE id == ?";
-            result_SQL = await this.dao.all(query_SQL, [target_id], (error, rows) => {
-                if (error) {
-                    return response.status(500).json(ERROR_500);
-                }
-            });
-        } catch (error)  {
-            console.log(error);
-            return response.status(500).json(ERROR_500);
-        }
+            /* retrieving film given ID from DB */
+            const film = await this.dao.getFilmByID(id);
+            if (film === undefined) {
+                return ERROR_404;
+            }
 
-        /* CHECKING RESULT */
-        if (result_SQL.length === 0) {
-            return response.status(404).json(ERROR_404);
+            return {
+                code: 200,
+                message: film
+            }
+        } catch (error) {
+            throw error;
         }
-
-        /* RETURN 200 ON SUCCESS */
-        return response.status(200).json(result_SQL[0]);
     }
 
 
@@ -205,58 +106,26 @@ class FilmController {
      * ---------------------------------------------
      *             API: POST /film
      * =============================================
-     * @param {callback} request 
-     * @param {callback} response 
+     * @param {JSON} filmObject 
     */
-    newFilm = async (request, response) => {
+    newFilm = async (filmObject) => {
 
-        const data = request.body;
-
-        /* CHECKING USER REQUEST */
-        if (Object.keys(data).length === 0) {
-            return response.status(422).json(ERROR_422);
-        } else if (data.title === undefined) {
-            return response.status(422).json(ERROR_422);
-        }
-        if(data.watchdate===undefined)
-            data.watchdate= null;
-        if(data.rating===undefined)
-            data.rating=null;
-        /* QUERYING THE DATABASE */
-        let result_SQL;
         try {
-            const query_SQL = "SELECT MAX(id) AS last_id FROM films";
-            result_SQL = await this.dao.all(query_SQL, (error, rows) => {
-                if (error) {
-                    return response.status(500).json(ERROR_500);
-                }
-            });
-        } catch (error)  {
-            console.log(error);
-            return response.status(500).json(ERROR_500);
-        }
-        const last_id = result_SQL[0].last_id;
+            /* retrieving lastID */
+            const lastID = await this.dao.getLastID();
 
-        /* INSERTION IN THE DATABASE */
-        /**
-         * 
-         *  NB: USER IS SET TO 1 AS DEFAULT -------> CHANGE HERE WHEN IMPLEMENTING AUTHENTICATION
-         * 
-         */
-        try {
-            const query_newFilm_SQL = "INSERT INTO films(id, title, favorite, watchdate, rating, user) VALUES (?, ?, ?, ?, ?, 1)";
-            await this.dao.run(query_newFilm_SQL, [last_id+1, data.title, data.favorite, data.watchdate, data.rating], (error) => {
-                if (error) {
-                    return response.status(500).json(ERROR_500);
-                }
-            });
+            /* INSERTION IN THE DATABASE */
+            /**
+             * 
+             *  NB: USER IS SET TO 1 AS DEFAULT -------> CHANGE HERE WHEN IMPLEMENTING AUTHENTICATION
+             * 
+             */
+            await this.dao.newFilm(lastID+1, filmObject);
+
+            return MESSG_201;
         } catch (error) {
-            console.log(error);
-            return response.status(500).json(ERROR_500);
+            throw error;
         }
-
-        /* RETURN 201 ON SUCCESS */
-        return response.status(201).json();
     }
 
 
@@ -272,47 +141,22 @@ class FilmController {
      * @param {callback} request 
      * @param {callback} response 
     */
-    editFilm = async (request, response) => {
+    editFilm = async (id, filmObject) => {
 
-        const target_id = request.params.id;
-        const data = request.body;
-
-        /* CHECKING USER REQUEST */
-        if (Object.keys(data).length === 0) {
-            return response.status(422).json(ERROR_422);
-        } else if (data.title === undefined || data.favorite === undefined) {
-            return response.status(422).json(ERROR_422);
-        } else if (/^[0-9]+$/.test(target_id) === false) {
-            return response.status(422).json(ERROR_422);
-        }
-        if(data.watchdate===undefined)
-            data.watchdate= null;
-        if(data.rating===undefined)
-            data.rating=null;
-
-        /* QUERYING THE DATABASE TO CHECK IF ID EXISTS */
-        let exist = await validateId(this.dao, target_id);
-        if (exist === -1) {
-            return response.status(500).json(ERROR_500);
-        } else if (exist === 0) {
-            return response.status(404).json(ERROR_404);
-        }
-
-        /* UPDATING THE DATABASE */
         try {
-            const query_EditFilm_SQL = "UPDATE films SET title = ?, favorite = ?, watchdate = ?, rating = ? WHERE id == ?";
-            await this.dao.run(query_EditFilm_SQL, [data.title, data.favorite, data.watchdate, data.rating, target_id], (error) => {
-                if (error) {
-                    return response.status(500).json(ERROR_500);
-                }
-            });
-        } catch (error) {
-            console.log(error);
-            return response.status(500).json(ERROR_500);
-        }
+            /* check if film actually exists in DB */
+            const film = await this.dao.getFilmByID(id);
+            if (film === undefined) {
+                return ERROR_404;
+            }
 
-        /* RETURN 200 ON SUCCESS */
-        return response.status(200).json();
+            /* update film in DB */
+            await this.dao.editFilmByID(id, filmObject);
+
+            return MESSG_200;
+        } catch (error) {
+            throw error;
+        }
     }
 
 
@@ -321,46 +165,26 @@ class FilmController {
      * ---------------------------------------------
      *        API: PUT /film/:id/favorite
      * =============================================
-     * @param {callback} request 
-     * @param {callback} response 
+     * @param {Number} id 
+     * @param {Number} newFavorite 
     */
-    setFilmFavorite = async (request, response) => {
+    setFilmFavorite = async (id, newFavorite) => {
 
-        const target_id = request.params.id;
-        const data = request.body;
-
-        /* CHECKING USER REQUEST */
-        if (Object.keys(data).length === 0) {
-            return response.status(422).json(ERROR_422);
-        } else if (data.favorite === undefined) {
-            return response.status(422).json(ERROR_422);
-        } else if (/^[0-9]+$/.test(target_id) === false) {
-            return response.status(422).json(ERROR_422);
-        }
-
-        /* QUERYING THE DATABASE TO CHECK IF ID EXISTS */
-        let exist = await validateId(this.dao, target_id);
-        if (exist === -1) {
-            return response.status(500).json(ERROR_500);
-        } else if (exist === 0) {
-            return response.status(404).json(ERROR_404);
-        }
-
-        /* UPDATING THE DATABASE */
         try {
-            const query_EditFilm_SQL = "UPDATE films SET favorite = ? WHERE id == ?";
-            await this.dao.run(query_EditFilm_SQL, [data.favorite, target_id], (error) => {
-                if (error) {
-                    return response.status(500).json(ERROR_500);
-                }
-            });
-        } catch (error) {
-            console.log(error);
-            return response.status(500).json(ERROR_500);
-        }
+            /* check if film actually exists in DB */
+            const film = await this.dao.getFilmByID(id);
+            if (film === undefined) {
+                return ERROR_404;
+            }
 
-        /* RETURN 200 ON SUCCESS */
-        return response.status(200).json();
+            /* update film in DB */
+            await this.dao.editFilmFavoriteByID(id, newFavorite);
+
+            return MESSG_200;
+
+        } catch (error) {
+            throw error;
+        }
     }
 
 
@@ -369,43 +193,18 @@ class FilmController {
      * ---------------------------------------------
      *            API: DELETE /film/:id
      * =============================================
-     * @param {callback} request 
-     * @param {callback} response 
+     * @param {Number} id 
     */
-    removeFilm = async (request, response) => {
+    removeFilm = async (id) => {
 
-        const target_id = request.params.id;
-
-        /* CHECKING USER REQUEST */
-        if (Object.keys(request.body).length !== 0) {
-            return response.status(422).json(ERROR_422);
-        } else if (/^[0-9]+$/.test(target_id) === false) {
-            return response.status(422).json(ERROR_422);
-        }
-
-        /* QUERYING THE DATABASE TO CHECK IF ID EXISTS */
-        let exist = await validateId(this.dao, target_id);
-        if (exist === -1) {
-            return response.status(500).json(ERROR_500);
-        } else if (exist === 0) {
-            return response.status(404).json(ERROR_404);
-        }
-
-        /* UPDATING THE DATABASE */
         try {
-            const query_EditFilm_SQL = "DELETE FROM films WHERE id == ?";
-            await this.dao.run(query_EditFilm_SQL, [target_id], (error) => {
-                if (error) {
-                    return response.status(500).json(ERROR_500);
-                }
-            });
-        } catch (error) {
-            console.log(error);
-            return response.status(500).json(ERROR_500);
-        }
+            /* remove film from DB */
+            await this.dao.removeFilm(id);
 
-        /* RETURN 200 ON SUCCESS */
-        return response.status(200).json();
+            return MESSG_204;
+        } catch (error) {
+            throw error;
+        }
     }
 }
 

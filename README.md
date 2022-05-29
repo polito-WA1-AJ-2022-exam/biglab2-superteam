@@ -39,7 +39,6 @@ If you decide to add additional users, please remember to add them to this table
 \
     `GET /films`
     Retrieve the list of all the available films.
-    - **Request header** has a line: `Content-Type: application/json`.
     - **Request body** is empty.
     - **Response**: `200 OK` (success). Return a list of JSON objects, containing all the films stored in the Database. The **response body** has the following structure:  
     ```JSON
@@ -64,14 +63,13 @@ If you decide to add additional users, please remember to add them to this table
     ]
     ```
     - **Error responses**: 
-        - `400 BAD REQUEST` (the request is not in the specified format)
+        - `422 UNPROCESSABLE ENTITY` (the request is not in the specified format)
         - `500 INTERNAL SERVER ERROR` (generic error if the server crashes)    
 ---
-- **API: `GET /films/filter/:filter`**
+- **API: `GET /films/:filter`**
 \
     `GET /films/:filter`
     Retrieve a list of all the films that fulfill a given filter (i.e., the same filters described in BigLab1).
-    - **Request header** has a line: `Content-Type: application/json` and `:filter` parameter to select the filter.
     - **Request body** is empty.
     - **Response**: `200 OK` (success). Return a list of JSON objects, containing all the films stored in the Database that fulfill the selected filter. The **response body** has the following structure: 
     ```JSON
@@ -96,16 +94,15 @@ If you decide to add additional users, please remember to add them to this table
     ]
     ```
     - **Error responses**: 
-        - `400 BAD REQUEST` (the request is not in the specified format)
-        - `422 UNPROCESSABLE ENTITY` (the filter chosen does not exists)
+        - `422 UNPROCESSABLE ENTITY` (the request is not in the specified format or the filter chosen does not exists)
         - `500 INTERNAL SERVER ERROR` (generic error if the server crashes)  
 ---
 
-- **API: `GET /films/:id`**
+- **API: `GET /film/:id`**
 \
-    `GET /films/:id`
+    `GET /film/:id`
     Retrieve a film, given its “id”.
-    - **Request header** has a line: `Content-Type: application/json` and `:id` parameter to select the film. `id` should be a number.
+    - **Request header** has `:id` parameter to select the film. `id` should be a number.
     - **Request body** is empty.
     - **Response**: `200 OK` (success). Return a JSON object, representing the film stored in the Database that corresponds to the chosen id. The **response body** has the following structure: 
     ```JSON
@@ -118,8 +115,7 @@ If you decide to add additional users, please remember to add them to this table
     }
     ```
     - **Error responses**: 
-        - `400 BAD REQUEST` (the request is not in the specified format)
-        - `422 UNPROCESSABLE ENTITY` (the id chosen is not in the specified format)
+        - `422 UNPROCESSABLE ENTITY` (the request is not in the specified format or the id chosen is not in the specified format)
         - `404 NOT FOUND` (the film that corresponds to the `id` chosen does not exist)
         - `500 INTERNAL SERVER ERROR` (generic error if the server crashes) 
 ---
@@ -129,7 +125,7 @@ If you decide to add additional users, please remember to add them to this table
     `POST /film`
     Create a new film, by providing all relevant information – except the “id” that will be automatically assigned by the back-end.
     - **Request header** has a line: `Content-Type: application/json`
-    - **Request body** is a JSON object containing all the relevant information. The structure of the body is the following: 
+    - **Request body** is a JSON object containing all the relevant information. `watchdate` and `rating` are optionals. The structure of the body is the following: 
     ```JSON
     {
         "title": "Goodfellas", 
@@ -152,15 +148,14 @@ If you decide to add additional users, please remember to add them to this table
     - **Request body** is a JSON object containing all the relevant information. If some fields doesn't change, send the old value. The structure of the body is the following: 
     ```JSON
     {
-        "title": "Goodfellas", 
-        "favorite": 1,
-        "watchdate": "2022-05-12",
-        "rating": 5
+        "newTitle": "Goodfellas", 
+        "newFavorite": 1,
+        "newWatchdate": "2022-05-12",
+        "newRating": 5
     }
     ```
     - **Response**: `200 OK` (success).
     - **Error responses**: 
-        - `400 BAD REQUEST` (the request is not in the specified format)
         - `404 NOT FOUND` (the film that corresponds to the `id` chosen does not exist)
         - `422 UNPROCESSABLE ENTITY` (the request body or the `id` are not in the specified format)
         - `500 INTERNAL SERVER ERROR` (generic error if the server crashes) 
@@ -174,12 +169,11 @@ If you decide to add additional users, please remember to add them to this table
     - **Request body** is a JSON object setting the `favorite` film to values `1` or `0`. The structure of the body is the following: 
     ```JSON
     {
-        "favorite": 1
+        "newFavorite": 1
     }
     ```
     - **Response**: `200 OK` (success).
     - **Error responses**: 
-        - `400 BAD REQUEST` (the request is not in the specified format)
         - `404 NOT FOUND` (the film that corresponds to the `id` chosen does not exist)
         - `422 UNPROCESSABLE ENTITY` (the request body or the `id` are not in the specified format)
         - `500 INTERNAL SERVER ERROR` (generic error if the server crashes) 
@@ -189,12 +183,11 @@ If you decide to add additional users, please remember to add them to this table
 \
     `DELETE /film/:id`
     Delete an existing film, given its “id”.
-    - **Request header** has a line: `Content-Type: application/json` and `:id` parameter to select the film. `id` should be a number.
+    - **Request header** has `:id` parameter to select the film. `id` should be a number.
     - **Request body** is empty.
     - **Response**: `204 NO CONTENT` (success).
     - **Error responses**: 
-        - `400 BAD REQUEST` (the request is not in the specified format)
         - `404 NOT FOUND` (the film that corresponds to the `id` chosen does not exist)
-        - `422 UNPROCESSABLE ENTITY` (the `id` is not in the specified format)
+        - `422 UNPROCESSABLE ENTITY` (the request body or the `id` is not in the specified format)
         - `500 INTERNAL SERVER ERROR` (generic error if the server crashes) 
 ---
