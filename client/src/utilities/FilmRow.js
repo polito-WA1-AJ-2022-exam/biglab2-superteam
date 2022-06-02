@@ -1,75 +1,78 @@
 /* IMPORTING BOOTSTRAP COMPONENTS */
 import { PencilSquare }     from 'react-bootstrap-icons';
 import { Trash3Fill }       from 'react-bootstrap-icons';
-import { useState }         from "react";
+import { useEffect, useState }         from "react";
 import { useNavigate }  from "react-router-dom";
 
 /* IMPORTING CUSTOMIZED COMPONENTS */
 import StarElem             from "./StarElem.js"
 
-
+const MAX_RATING = 5;
 
 function FilmRow(props) {
 
-    /* DATA AND STATES USED */
-    let arr = [];
-    let [fav, setFav] = useState(props.film.favourite);
-    let [color, setColor] =useState(props.film.favourite?'text-danger':'text-dark');
+    /* --- STATES --- */
+    let [fav, setFav] = useState(props.film.favorite); 
+    let [color, setColor] = useState(props.film.favorite ? 'text-danger' : 'text-dark');
 
+    /* --- UTILITIES --- */
     const navigate = useNavigate();
 
-    /* COMPUTING WATCHDATE */
-    let watchdate = (props.film.date.$d.toString()!=="Invalid Date" ) ? props.film.date.$d.toString().substr(0,15) : "To be seen";
-
-    /* COMPUTING RATINGS */
-    const MAX_RATING = 5;
-    let current_rating = (props.film.rating === undefined) ? 0 : props.film.rating;
+    /* --- COMPUTING FILM VALUES FOR RENDERING --- */
+    let currentRating = (props.film.rating === null) ? 0 : props.film.rating;
+    let arr = [];
     for (let i = 0; i < MAX_RATING; i++) {
-        arr[i] = (i < current_rating) ? 1 : 0
+        arr[i] = (i < currentRating) ? 1 : 0
     }
 
     let trash3FillOnClickHandler = () => {
     
         if(window.confirm('Are you sure you want to remove this film?') === true) {
             props.removeFilm(props.film.id);
-            if (props.mode === 'edit' && props.editedFilm.id === props.film.id)
-                props.updateMode('view');
         } 
     }
 
     let favouriteOnClickHandler = (event) => {
-        if (props.mode !== 'edit' && props.editedFilm.id !== props.film.id) {
 
-            /* CHECKING IF THE FILM HAS A WATCHDATE */
-            if (props.film.date.$d.toString()!=="Invalid Date") {
-                setFav(!props.film.favourite);
-                props.editFilmFav(props.film);
-            } else {
-                alert("You may not like this one...");
-                event.target.checked = !event.target.checked
+        /* checking watchdate constraint: cannot set a film as favorite if it has not been seen yet */
+        if (props.film.watchdate !== null) {
+            setFav((props.film.favorite === 1) ? 0 : 1);
+            setColor((props.film.favorite === 1) ? 'text-danger' : 'text-dark');
 
-            }
+            /* hooking App() for API call and re-rendering */
+            props.film.favorite = (props.film.favorite === 1) ? 0 : 1;
+            props.editFilmFav(props.film);
+        } else {
+            alert("You may not like this one...");
+            event.target.checked = !event.target.checked;
         }
     }
 
     let ratingOnClickHandler = (film, number) => {
-        if (props.mode !== 'edit' && props.editedFilm.id !== props.film.id)
-            
-            /* CHECKING IF THE FILM HAS A WATCHDATE */
-            if (props.film.date.$d.toString()!=="Invalid Date") {
 
-                /* CHECKING IF IT IS A CLICK TO REMOVE THE LAST STAR */
-                if (number === 1 && film.rating === 1) {
-                    number = 0;
-                }
-                props.editFilmRating(film,number);
-            } else {
-                alert("'E non ha mai criticato un film\n Senza prima, prima vederlo'");
+        /* checking watchdate constraint: cannot set a film as favorite if it has not been seen yet */
+        if (props.film.watchdate !== null) {
+            if (number === 1 && film.rating === 1) {
+                number = 0;
             }
-
+            /* hooking App() for API call and re-rendering */
+            if (film.rating !== number) {
+                film.rating = number;
+                props.editFilmRating(film);
+            }
+        } else {
+            alert("You may not like this one...");
+        }
     }
 
+    useEffect(() => {
+        setFav(props.film.favorite);
+        setColor((props.film.favorite === 1) ? 'text-danger' : 'text-dark');
+    });
 
+    /**
+     * Rendering the component
+     */
     return(
         <tr>
             {/* ICONS FOR EDITING AND TRASHING */}
@@ -86,13 +89,13 @@ function FilmRow(props) {
 
             {/* FAVORITE */}
             <td>
-                <input class="checkbox_id" type="checkbox"  disabled={props.mode === 'edit' && props.editedFilm.id === props.film.id} name="favorite" checked={fav} onChange={(event)=>(favouriteOnClickHandler(event))}  />
+                <input class="checkbox_id" type="checkbox"  name="favorite" checked={fav} onChange={(event)=>(favouriteOnClickHandler(event))}  />
                 {" "}<label htmlFor="favorite"> Favorite</label>
             </td>
 
             {/* WATCHDATE */}
             <td>
-                {watchdate}
+                {(props.film.watchdate === null) ? '📅' : props.film.watchdate}
             </td>
 
             {/* RATINGS */}

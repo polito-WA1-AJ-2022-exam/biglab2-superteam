@@ -1,6 +1,8 @@
 /* IMPORTING CUSTOMIZED COMPONENTS */
 import FilmRow from '../utilities/FilmRow';
-import { readFilteredFilms, readFilms }        from "../utilities/API.js";
+
+/* IMPORTING API COMPONENT */
+import { API } from "../utilities/API";
 
 /* IMPORTING BOOTSTRAP COMPONENTS */
 import { Table } from 'react-bootstrap'
@@ -9,17 +11,22 @@ import { useState, useEffect } from "react";
 
 function TableContent(props) {
 
-  /* HEADER OF THE TABLE WHEN A FILTER IS SELECTED */
+  /* --- STATES --- */
+  const [renderedFilms, setRenderedFilms] = useState(props.films);  /* initialize the films to be rendered in the TableContent component to the whole list of films */
+
+  /* --- DATA --- */
   const header = "Filter: " + props.filter;
-
-  const [editedFilm, setEditedFilm] = useState({});
-  const [loading, setLoading] = useState(true);
-
-  const updateEditedFilm = (film) => {
-    setEditedFilm(film);
-  }
+  const frontAPI = new API();
 
 
+  /**
+   * Parsing the filter in according to the Back-End API endpoints.
+   * All        --> all
+   * Favorites  --> favorites
+   * Best Rated --> best-rated
+   * Last Seen  --> last-seen
+   * Unseen     --> unseen
+   */
   var filter;
   if (props.filter === "All") {
     filter='all';
@@ -33,40 +40,41 @@ function TableContent(props) {
     filter='unseen';
   }
 
-  useEffect(()=>{
+  /**
+   * Render different TableContent when the filter changes, in according to the filter
+   * selected.
+   */
+  useEffect(() => {
     async function load() {
-       var list = await readFilteredFilms(filter);
-      props.setFilms(list);
-      setLoading(false);
+      var result = await frontAPI.readFilteredFilms(filter);
+      setRenderedFilms(result);
     }
     load();
-  }, [props.filter]);
+  }, [props.filter, props.films]);  /* TODO: avoid arrays as dependencies */
 
-  if (loading)
-    return (
-     <>
-        <Table hover>
-          <thead>
-            <tr>{header}</tr>
-          </thead>
-          <tbody>
-          </tbody>
-        </Table>
-      </>
-    );
-  else
-    return (
-     <>
-        <Table hover>
-          <thead>
-            <tr>{header}</tr>
-          </thead>
-          <tbody>
-          {props.films.map((film) => (<FilmRow film={film} editedFilm={editedFilm} updateEditedFilm={updateEditedFilm} key={[film.id, film.favourite]} editFilmRating={props.editFilmRating} removeFilm={props.removeFilm} editFilmFav={props.editFilmFav} />))}
-          </tbody>
-        </Table>
-      </>
-    );
+
+  if (props.loading) {
+    return <>
+      <Table hover>
+        <thead>
+          <tr>{header}</tr>
+        </thead>
+        <tbody>
+        </tbody>
+      </Table>
+    </>
+  } else {
+    return <>
+      <Table hover>
+        <thead>
+          <tr>{header}</tr>
+        </thead>
+        <tbody>
+          {renderedFilms.map((film) => (<FilmRow film={film} key={[film.id, film.favourite]} editFilmRating={props.editFilmRating} removeFilm={props.removeFilm} editFilmFav={props.editFilmFav} />))}
+        </tbody>
+      </Table>
+    </>
+  }
 }
 
 export default TableContent;

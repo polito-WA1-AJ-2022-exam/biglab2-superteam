@@ -13,12 +13,14 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 
 /* IMPORTING CUSTOMIZED COMPONENT */
 import { Film }             from "./utilities/film.js";
-import { apiRemoveFilm, apiAddFilm, readFilms, apiEditFilmFav, apiEditFilm }        from "./utilities/API.js";
 import { HomePage }         from "./components/Home";
 import { NoMatchPage }      from "./components/Home";
 import { RenderFilter }     from "./components/manageFilter";
 import { NewFilmPage }      from './components/Home';
 import { EditFilmPage }     from './components/Home';
+
+/* IMPORTING API COMPONENT */
+import { API } from "./utilities/API";
 
 
 
@@ -29,106 +31,153 @@ import { EditFilmPage }     from './components/Home';
  */
 function App() {
 
-  /* DATA AND STATES USED */
-  const [films, setFilms] = useState([]);
-  const [loading, setLoading] = useState(true);
+  /* --- STATES --- */
+  const [films, setFilms] = useState([]);         /* initialize state variable [films] to empty list (no film at the beginning) */
+  const [loading, setLoading] = useState(false)   /* initialize state variable [loading] to false (it will indicate if the application is performing any operations that will change the render) */
 
-  useEffect(()=>{
-    async function load() {
-      const list = await readFilms();
-      setFilms(list);
+  /* --- API UTILITIES --- */
+  const frontAPI = new API();
+
+  /* --- APP.js UTILITIES --- */
+  /**
+   * Reload the list of films from the DB in order to keep the state up-to-date.
+   * Performs the following operations: 
+   *    - call the frontAPI to fetch the server-side endpoint implementing the GET request for retrieving the whole list of films from the DB
+   *    - check for errors
+   *    - actual update of the states
+   */
+  const reloadFilms = async () => {
+    try {
+      setLoading(true);
+      const result = await frontAPI.readFilms();
       setLoading(false);
+      setFilms(result);
+    } catch (error) {
+      console.log(error);
+      alert(error);            
     }
-    load();
+  }
+
+  /**
+   * Reload the list of films from the DB in order to keep the state up-to-date.
+   * Performs the following operations: 
+   *    - call the frontAPI to fetch the server-side endpoint implementing the GET request for retrieving the whole list of films from the DB
+   *    - check for errors
+   *    - actual update of the states
+   */
+  const addFilm = async (newFilm) => {
+    try {
+      setLoading(true);
+      await frontAPI.addFilm(newFilm);
+      setLoading(false);
+      reloadFilms();
+    } catch (error) {
+      console.log(error);
+      alert(error);
+    }
+  }
+
+  /**
+   * Receive a new film object which will be added in the DB.
+   * Performs the following operations: 
+   *    - call the frontAPI to fetch the server-side endpoint implementing the POST request for adding a specific film in the DB
+   *    - check for errors
+   *    - actual update of the states
+   * @param {Film} newFilm 
+   */
+  const editFilmRating = async (newFilm) => {
+    try {
+      setLoading(true);
+      await frontAPI.editFilm(newFilm);
+      reloadFilms();
+      setLoading(false);
+    } catch (error) {
+      console.log(error);
+      alert(error);             
+    }
+  }
+
+  /**
+   * Receive a new film object which will overwrite the corresponding id film favorite in the DB.
+   * Performs the following operations: 
+   *    - call the frontAPI to fetch the server-side endpoint implementing the PUT request for editing a specific film favorite in the DB
+   *    - check for errors
+   *    - actual update of the states
+   * @param {Film} newFilm 
+   */
+  const editFilmFav = async (newFilm) => {
+    try {
+      setLoading(true);
+      await frontAPI.editFilmFavorite(newFilm);
+      setLoading(false);
+      reloadFilms();
+    } catch (error) {
+      console.log(error);
+      alert(error);             
+    }
+  }
+
+  /**
+   * Receive a new film object which will overwrite the corresponding id film in the DB.
+   * Performs the following operations: 
+   *    - call the frontAPI to fetch the server-side endpoint implementing the PUT request for editing a specific film in the DB
+   *    - check for errors
+   *    - actual update of the states
+   * @param {Film} newFilm 
+   */
+  const editFilm = async (newFilm) => {
+    try {
+      setLoading(true);
+      await frontAPI.editFilm(newFilm);
+      setLoading(false);
+      reloadFilms();
+    } catch (error) {
+      console.log(error);
+      alert(error);
+    }
+  }
+
+  /**
+   * Remove a film from the DB
+   * Performs the following operations: 
+   *    - call the frontAPI to fetch the server-side endpoint implementing the DELETE request for removing a specific film in the DB
+   *    - check for errors
+   *    - actual update of the states
+   */
+  const removeFilm = async (targetID) => {
+    try {
+      setLoading(true);
+      await frontAPI.removeFilm(targetID);
+      setLoading(false);
+      reloadFilms();
+    } catch (error) {
+      console.log(error);
+      alert(error);
+    }
+  } 
+
+  /**
+   * Called only when the App component is mounted: loads all the films
+   * from DB to states.
+   */
+  useEffect(() => {
+    reloadFilms();
   }, []);
 
-  /*Error handling still to be implemented*/
-  const removeFilm = async (id) =>{
-    try{
-        setLoading(true);
-        await apiRemoveFilm(id);
-        setFilms((oldFilms)=> (oldFilms.filter((film)=>(film.id!==id))));
-        const list = await readFilms();
-        setFilms(list);
-        setLoading(false);
-    } catch (e){
-      //error handling to be implemented
-    }
-  }
-
-    /*Error handling still to be implemented*/
-  const editFilm = async (id, title, fav, date, rating) =>{
-    let filmMod = new Film(id, title, fav, date, rating);
-    try{
-      setLoading(true);
-      await apiEditFilm(filmMod);
-      const list = await readFilms();
-      setFilms(list);
-      setLoading(false);
-    } catch(e){
-      //error handling to be implemented
-    }
-    return filmMod;
-  }
-
-  /*Error handling still to be implemented*/
-  const addFilm = async (title, fav, date, rating) =>{
-    try{
-      setLoading(true);
-      let film = new Film((films.length+1), title, fav, date, rating);
-      await apiAddFilm(film);
-      setFilms((oldFilms)=> ([...oldFilms, film]));
-      const list = await readFilms();
-      setFilms(list);
-      setLoading(false);
-    } catch (e){
-      //error handling to be implemented
-    }
-  }
-
-  /*Error handling still to be implemented*/
-  const editFilmFav = async (filmMod) =>{
-    try{
-      setLoading(true);
-      filmMod.favourite=!(filmMod.favourite);
-      await apiEditFilmFav(filmMod);
-      const list = await readFilms();
-      setFilms(list);
-      setLoading(false);
-    }
-    catch(e){
-    //error handling to be implemented
-    }
-    return filmMod;
-  }
-   /*Error handling still to be implemented*/
-  const editFilmRating = async (filmMod, newrating) =>{
-    try{
-      setLoading(true);
-      filmMod.rating=newrating;
-      await apiEditFilm(filmMod);
-      const list = await readFilms();
-      setFilms(list);
-      setLoading(false);
-    } catch(e){
-      //error handling to be implemented
-    }
-    return filmMod;
-  }
-
+  /**
+   * Rendering the web interface
+   */
   return (
     <BrowserRouter>
       <Routes>
         <Route path='/' element={<HomePage />} />         {/* HOME PAGE */}
-        <Route path='/all' element={<RenderFilter setFilms={setFilms} filter={"All"} films={films}  editFilmRating={editFilmRating} removeFilm={removeFilm} editFilmFav={editFilmFav}/>} />      {/* FILTERS */}
-        <Route path='/favorites' element={<RenderFilter filter={"Favorites"} films={films} setFilms={setFilms} editFilmRating={editFilmRating} removeFilm={removeFilm} editFilmFav={editFilmFav}/>} />      {/* FILTERS */}
-        <Route path='/best-rated' element={<RenderFilter filter={"Best Rated"} films={films} setFilms={setFilms} editFilmRating={editFilmRating} removeFilm={removeFilm} editFilmFav={editFilmFav}/>} />      {/* FILTERS */}
-        <Route path='/last-seen' element={<RenderFilter filter={"Last Seen"} films={films} setFilms={setFilms} editFilmRating={editFilmRating} removeFilm={removeFilm} editFilmFav={editFilmFav}/>} />      {/* FILTERS */}
-        <Route path='/unseen' element={<RenderFilter filter={"Unseen"} films={films} setFilms={setFilms} editFilmRating={editFilmRating} removeFilm={removeFilm} editFilmFav={editFilmFav}/>} />      {/* FILTERS */}
-
-        {/* ADD AND EDIT FUNCTIONALITY */}
-        <Route path='/add-film' element={<NewFilmPage addFilm={addFilm} />} />
-        <Route path='/edit-film/:id' element={<EditFilmPage editFilm={editFilm} films={films}/>} />
+        <Route path='/all' element={<RenderFilter filter={"All"} loading={loading} films={films} editFilmRating={editFilmRating} removeFilm={removeFilm} editFilmFav={editFilmFav}/>} />      {/* FILTERS */}
+        <Route path='/favorites' element={<RenderFilter filter={"Favorites"} loading={loading} films={films} editFilmRating={editFilmRating} removeFilm={removeFilm} editFilmFav={editFilmFav}/>} />      {/* FILTERS */}
+        <Route path='/best-rated' element={<RenderFilter filter={"Best Rated"} loading={loading} films={films} editFilmRating={editFilmRating} removeFilm={removeFilm} editFilmFav={editFilmFav}/>} />      {/* FILTERS */}
+        <Route path='/last-seen' element={<RenderFilter filter={"Last Seen"} loading={loading} films={films} editFilmRating={editFilmRating} removeFilm={removeFilm} editFilmFav={editFilmFav}/>} />      {/* FILTERS */}
+        <Route path='/unseen' element={<RenderFilter filter={"Unseen"} loading={loading} films={films} editFilmRating={editFilmRating} removeFilm={removeFilm} editFilmFav={editFilmFav}/>} />      {/* FILTERS */}
+        <Route path='/add-film' element={<NewFilmPage loading={loading} addFilm={addFilm} />} />
+        <Route path='/edit-film/:id' element={<EditFilmPage loading={loading} films={films} editFilm={editFilm}/>} />
 
         <Route path='*' element={<NoMatchPage />} />          {/* PAGE NOT FOUND */}
       </Routes>

@@ -134,19 +134,19 @@ router.post(
     "/film",
     [
         header('Content-Type').equals('application/json'),  /* [FROM README.md]: Request header has a line: Content-Type: application/json. */
+        body().custom((body) => {                           /* [FROM README.md]: watchdate and rating are optional parameters               */
+            return !(body.watchdate === undefined && body.rating !== undefined);
+        }),
+        body().custom((body) => {                           /* [FROM README.md]: favorite cannot be 1 if the film has not been seen yet      */
+            return !(body.watchdate === undefined && body.favorite === 1);
+        }),
         body('title').isString(),                           /* [FROM README.md]: title is a string */
-        body('favorite').isInt({gt: -1, lt: 2}),            /* [FROM README.md]: favorite is either 0 or 1 */
+        body('favorite').isBoolean(),                       /* [FROM README.md]: favorite is a boolean value (either true/false, 1/0 or yes/no) */
         body('watchdate').custom((value) => {               /* [FROM README.md]: watchdate is in the format YYYY-MM-DD */
-            if (value !== undefined) {
-                return /^\d{4}-\d{2}-\d{2}$/.test(value);
-            }
-            return true;
+            return (value === undefined || (/^\d{4}-\d{2}-\d{2}$/.test(value)));
         }),
         body('rating').custom((value) => {                  /* [FROM README.md]: rating is an integer between 0 and 5 */
-            if (value !== undefined) {
-                return (value >= 0 && value <= 5);
-            }
-            return true;
+            return (value === undefined || (value >= 0 && value <= 5));
         })              
     ],
     validationHandler,
@@ -176,19 +176,19 @@ router.put(
     "/film/:id", 
     [
         header('Content-Type').equals('application/json'),      /* [FROM README.md]: Request header has a line: Content-Type: application/json. */
+        body().custom((body) => {                               /* [FROM README.md]: watchdate and rating are optional parameters               */
+            return !(body.newWatchdate === undefined && body.newWating !== undefined);
+        }),
+        body().custom((body) => {                               /* [FROM README.md]: favorite cannot be 1 if the film has not been seen yet      */
+            return !(body.newWatchdate === undefined && body.newFavorite === 1);
+        }),
         body('newTitle').isString(),                            /* [FROM README.md]: title is a string */
-        body('newFavorite').isInt({gt: -1, lt: 2}),             /* [FROM README.md]: favorite is either 0 or 1 */
-        body('newWatchdate').custom((value) => {                /* [FROM README.md]: watchdate is in the format YYYY-MM-DD */
-            if (value !== undefined) {
-                return /^\d{4}-\d{2}-\d{2}$/.test(value);
-            }
-            return true;
+        body('newFavorite').isBoolean(),                        /* [FROM README.md]: newFavorite is a boolean value (either true/false, 1/0 or yes/no) */
+        body('newWatchdate').custom((value) => {                /* [FROM README.md]: watchdate is either "To be seen" or in the format YYYY-MM-DD */
+            return (value === undefined || (/^\d{4}-\d{2}-\d{2}$/.test(value)));
         }),
         body('newRating').custom((value) => {                   /* [FROM README.md]: rating is an integer between 0 and 5 */
-            if (value !== undefined) {
-                return (value >= 0 && value <= 5);
-            }
-            return true;
+            return (value === undefined || (value >= 0 && value <= 5));
         })              
     ],
     validationHandler,
@@ -215,7 +215,7 @@ router.put(
     "/film/:id/favorite", 
     [
         header('Content-Type').equals('application/json'),      /* [FROM README.md]: Request header has a line: Content-Type: application/json. */
-        body('newFavorite').isInt({gt: -1, lt: 2}),             /* [FROM README.md]: favorite is either 0 or 1 */           
+        body('newFavorite').isBoolean()                         /* [FROM README.md]: newFavorite is a boolean value (either true/false, 1/0 or yes/no) */          
     ],
     validationHandler,
     async (request, response) => {

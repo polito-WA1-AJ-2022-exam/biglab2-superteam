@@ -56,7 +56,7 @@ function NewFilmPage(props) {
             <Container fluid>
                 <Row className="justify-content-md-center">
                     <Col md="4" className='text-center'>
-                        <FilmForm addOrEditFilm={props.addFilm} mode={"add"}/>
+                        <FilmForm loading={props.loading} addFilm={props.addFilm} mode={"add"}/>
                     </Col>
                 </Row>
             </Container>
@@ -66,7 +66,10 @@ function NewFilmPage(props) {
 
 function EditFilmPage(props) {
 
+    /* retrieving specific film to edit given ID from URL */
     const { id } = useParams();
+    const targetFilm = props.films.filter((film) => {return film.id === parseInt(id)});
+
     return (
         <div>
             {/* NAVIGATION BAR */}
@@ -83,7 +86,7 @@ function EditFilmPage(props) {
             <Container fluid>
                 <Row className="justify-content-md-center">
                     <Col md="4" className='text-center'>
-                        <FilmForm editFilm={props.editFilm} films={props.films} mode={"edit"} id={id} />
+                        <FilmForm loading={props.loading} targetFilm={targetFilm[0]} editFilm={props.editFilm} mode={"edit"} />
                     </Col>
                 </Row>
             </Container>

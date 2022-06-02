@@ -61,9 +61,9 @@ class FilmController {
         } else if (filter === 'best-rated') {
             films = films.filter((film) => (film.rating == 5));
         } else if (filter === 'last-seen') {
-            films = films.filter((film) => (dayjs().diff(dayjs(film.watchdate, "MMMM DD, YYYY"), 'day') <= 30 && film.watchdate != undefined));
+            films = films.filter((film) => (dayjs().diff(dayjs(film.watchdate, "YYYY-MM-DD"), 'day') <= 30 && film.watchdate !== "To be seen"));
         } else if (filter === 'unseen') {
-            films = films.filter((film) => (film.watchdate == undefined));
+            films = films.filter((film) => (film.watchdate === null));
         }
 
         return {

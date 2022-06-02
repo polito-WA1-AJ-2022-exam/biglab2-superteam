@@ -1,34 +1,22 @@
 import dayjs from 'dayjs';
 
-function Film(id, title, favourite, date, rating){
-    this.id=id;
-    this.title=title;
-    this.favourite= favourite;
-    if(this.date !== undefined)
-             this.watchdate=this.date.$d.toString().substr(0,15);
-    else
-            this.watchdate="To be seen";
-    if(date !== undefined && date!=='')
-        this.date=dayjs(date, "MMMM DD, YYYY");
-    if(rating !== undefined)
-        this.rating=rating;
-    this.getdiff=() =>{
-        let curdate=dayjs();
-        let diff=curdate.diff(this.date, 'day');
-        return diff;
-    }
-    this.printfilm=()=>{
-        let printstring="";
-        let watchdate="<not defined>";
-        let scoreprint="<not defined>";
-        if(this.date !== undefined)
-             this.watchdate=this.date.$d.toString().substr(0,15);
-        if(this.rating !== undefined)
-             scoreprint=this.rating;
+class Film {
 
-        printstring="Id: "+this.id+", Title: "+ this.title + ", Favourite: "+((this.favourite===true)?"true":"false")+ ", Watch date: "+ watchdate + ", Score: "+ scoreprint;
-        console.log(printstring);
-    };
+    /**
+     * Constructor og the film object
+     * @param {Number} id 
+     * @param {String} title 
+     * @param {Boolean} favorite 
+     * @param {Date} watchdate 
+     * @param {Number} rating 
+     */
+    constructor(id, title, favorite, watchdate, rating) {
+        this.id = id;
+        this.title = title;
+        this.favorite = (favorite !== undefined) ? favorite : undefined;
+        this.watchdate = (watchdate !== undefined) ? watchdate : undefined;
+        this.rating = (rating !== undefined) ? rating : undefined;
+    }
 }
 
 function FilmLibrary(){

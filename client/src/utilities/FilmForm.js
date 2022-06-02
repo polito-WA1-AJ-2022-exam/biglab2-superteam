@@ -1,25 +1,14 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import dayjs from 'dayjs';
 
 /* IMPORTING REACT ROUTER COMPONENTS */
-import { useNavigate }  from 'react-router-dom';
+import { useNavigate, useParams }  from 'react-router-dom';
 
 /* IMPORTING REACT BOOTSTRAP COMPONENTS */
 import { Button } from 'react-bootstrap';
 import { Form }   from 'react-bootstrap';
 
 function FilmForm(props) {
-
-  /* RETRIEVING FILM TO BE EDITED */
-  if (props.mode === "edit") {
-    var target_film;
-    props.films.forEach((film) => {
-      if (film.id == props.id) {
-        target_film = film;
-      }
-    });
-  }
-
 
   /* DATA AND STATES USED */
   const [validated, setValidated] = useState(false);
@@ -28,16 +17,17 @@ function FilmForm(props) {
   const defaultDate = '';
   const defaultRating = 0;
 
-  const [fav, setFav] = useState(props.mode === 'add' ? defaultFavourite : target_film.favourite);
-  const [title, setTitle] = useState(props.mode === 'add' ? defaultTitle : target_film.title);
-  const [date, setDate] = useState(props.mode === 'add' ? defaultDate : target_film.date);
-  const [rating, setRating] = useState(props.mode === 'add' ? defaultRating : target_film.rating);
-  const [validDate, setValidDate] = useState(date !== undefined && date !== '' && dayjs().diff((dayjs(date, "MMMM DD, YYYY"), 'day') >= 0) ? true : false );
-
-  const navigate = useNavigate();
-
+  const [fav, setFav] = useState(props.mode === 'add' ? defaultFavourite : props.targetFilm.favorite);
+  const [title, setTitle] = useState(props.mode === 'add' ? defaultTitle : props.targetFilm.title);
+  const [date, setDate] = useState(props.mode === 'add' ? defaultDate : props.targetFilm.watchdate);
+  const [rating, setRating] = useState(props.mode === 'add' ? defaultRating : props.targetFilm.rating);
 
   
+  const [validDate, setValidDate] = useState(date !== null && date !== '' && dayjs().diff((dayjs(date, "YYYY-MM-DD"), 'day') >= 0));
+
+ 
+  const navigate = useNavigate();
+
   const getDate = (day) => {
     let daystring = '';
     if (day !== undefined)
@@ -50,7 +40,7 @@ function FilmForm(props) {
   }
 
   const checkValidity = (date) =>{
-    const diff = dayjs().diff(dayjs(date, "MMMM DD, YYYY"), 'day');
+    const diff = dayjs().diff(dayjs(date, "YYYY-MM-DD"), 'day');
     if (date !== undefined && diff >= 0)
       setValidDate(true);
     else{
@@ -72,16 +62,18 @@ function FilmForm(props) {
 
     if (props.mode === "add") {
       if (window.confirm("Are you sure you want to add this film?") === true) {
+
+        /* creating the newFilm object and hooks App() to call the client-side API */
+        const newFilm = {
+          title: title,
+          favorite: fav,
+          ...((date !== '') && {watchdate: date}),  /* add object attribute conditionally */
+          ...((date !== '') && {rating: rating})    /* add object attribute conditionally */
+        }
+        props.addFilm(newFilm);
+
         // adding the film to the film list
         setValidated(true);
-        props.addOrEditFilm(title, fav, date, Number(rating));
-  
-        // resetting values to default
-        setFav(defaultFavourite);
-        setTitle(defaultTitle);
-        setDate(defaultDate);
-        setRating(defaultRating);
-  
         alert('A new film was submitted: ' + title);
         
         /* GOING BACK TO THE PREVIOUS PAGE */
@@ -89,16 +81,19 @@ function FilmForm(props) {
       }
     } else {
       if (window.confirm("Are you sure you want to edit this film?") === true) {
+
+        /* creating the newFilm object and hooks App() to call the client-side API */
+        const newFilm = {
+          id: props.targetFilm.id,
+          title: title,
+          favorite: fav,
+          watchdate: date,
+          rating: rating
+        }
+        props.editFilm(newFilm);
+
         // adding the film to the film list
         setValidated(true);
-        props.editFilm(props.id, title, fav, date, Number(rating));
-  
-        // resetting values to default
-        setFav(defaultFavourite);
-        setTitle(defaultTitle);
-        setDate(defaultDate);
-        setRating(defaultRating);
-  
         alert('A film was submitted: ' + title);
         
         /* GOING BACK TO THE PREVIOUS PAGE */
@@ -108,7 +103,7 @@ function FilmForm(props) {
   };
 
   
-  return (   
+  return (
     <div style={{ borderColor: 'grey', borderWidth: 2, borderStyle: 'dotted', padding: 10 }}>
       <Form noValidate validated={validated} onSubmit={handleSubmit}>
 

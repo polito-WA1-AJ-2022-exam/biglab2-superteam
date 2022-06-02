@@ -61,7 +61,7 @@ function RenderFilter(props) {
 
                     <Col>
                         {/* TABLE OF CONTENTS */}
-                        <TableContent films={props.films} setFilms={props.setFilms} filter={props.filter} editFilmRating={props.editFilmRating} removeFilm={props.removeFilm} editFilmFav={props.editFilmFav}/>
+                        <TableContent filter={props.filter} loading={props.loading} films={props.films} editFilmRating={props.editFilmRating} removeFilm={props.removeFilm} editFilmFav={props.editFilmFav}/>
                     </Col>
                 </Row>
             </Container>
