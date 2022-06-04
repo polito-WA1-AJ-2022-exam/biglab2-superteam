@@ -68,7 +68,7 @@ function FilmRow(props) {
     useEffect(() => {
         setFav(props.film.favorite);
         setColor((props.film.favorite === 1) ? 'text-danger' : 'text-dark');
-    });
+    }, [props.film.favorite]);
 
     /**
      * Rendering the component

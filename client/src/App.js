@@ -12,7 +12,7 @@ import { Route }          from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 /* IMPORTING CUSTOMIZED COMPONENT */
-import { Film }             from "./utilities/film.js";
+// import { Film }             from "./utilities/film.js";
 import { HomePage }         from "./components/Home";
 import { NoMatchPage }      from "./components/Home";
 import { RenderFilter }     from "./components/manageFilter";
