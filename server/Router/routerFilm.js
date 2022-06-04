@@ -7,7 +7,8 @@ const DAO                   = require("../DB/dao");
 const { param }             = require('express-validator');
 const { header }            = require('express-validator');
 const { body }              = require('express-validator');
-const { validationHandler } = require("./validationHandler");
+const { validationHandler } = require("../Validator/validationHandler");
+const { isLoggedIn }        = require('../Validator/loginHandler');
 
 /* ---------- INITIALIZATIONS ---------- */
 const router        = express.Router();
@@ -39,9 +40,10 @@ router.get(
         })
     ],
     validationHandler,
+    isLoggedIn,
     async (request, response) => {
         try {
-            const result = await controller.getFilms();
+            const result = await controller.getFilms(request.session.passport.user.id);
             return response.status(result.code).json(result.message);
         } catch (error) {
             console.log(error);
@@ -80,9 +82,10 @@ router.get(
         })
     ],
     validationHandler,
+    isLoggedIn,
     async (request, response) => {
         try {
-            const result = await controller.getFilteredFilms(request.params.filter);
+            const result = await controller.getFilteredFilms(request.params.filter, request.session.passport.user.id);
             return response.status(result.code).json(result.message);
         } catch (error) {
             console.log(error);
@@ -110,9 +113,10 @@ router.get(
         })
     ],
     validationHandler,
+    isLoggedIn,
     async (request, response) => {
         try {
-            const result = await controller.getFilmById(request.params.id);
+            const result = await controller.getFilmById(request.params.id, request.session.passport.user.id);
             return response.status(result.code).json(result.message);
         } catch (error) {
             console.log(error);
@@ -150,9 +154,10 @@ router.post(
         })              
     ],
     validationHandler,
+    isLoggedIn,
     async (request, response) => {
         try {
-            const result = await controller.newFilm(request.body);
+            const result = await controller.newFilm(request.body, request.session.passport.user.id);
             return response.status(result.code).json(result.message);
         } catch (error) {
             console.log(error);
@@ -192,9 +197,10 @@ router.put(
         })              
     ],
     validationHandler,
+    isLoggedIn,
     async (request, response) => {
         try {
-            const result = await controller.editFilm(request.params.id, request.body);
+            const result = await controller.editFilm(request.params.id, request.body, request.session.passport.user.id);
             return response.status(result.code).json(result.message);
         } catch (error) {
             console.log(error);
@@ -220,7 +226,7 @@ router.put(
     validationHandler,
     async (request, response) => {
         try {
-            const result = await controller.setFilmFavorite(request.params.id, request.body.newFavorite);
+            const result = await controller.setFilmFavorite(request.params.id, request.body.newFavorite, request.session.passport.user.id);
             return response.status(result.code).json(result.message);
         } catch (error) {
             console.log(error);
@@ -249,9 +255,10 @@ router.delete(
         })
     ],
     validationHandler,
+    isLoggedIn,
     async (request, response) => {
         try {
-            const result = await controller.removeFilm(request.params.id);
+            const result = await controller.removeFilm(request.params.id, request.session.passport.user.id);
             return response.status(result.code).json(result.message);
         } catch (error) {
             console.log(error);

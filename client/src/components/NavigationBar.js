@@ -4,6 +4,9 @@ import { Container }    from "react-bootstrap";
 import { Nav }          from "react-bootstrap";
 import { useNavigate }  from "react-router-dom";
 
+/* IMPORTING CUSTOMIZED COMPONENT */
+import { LogoutButton }     from '../components/Logout';
+
 function MyNavbar(props) {
     const navigate = useNavigate();
     return ( 
@@ -25,7 +28,7 @@ function MyNavbar(props) {
             </Container>
 
             {/* USER LOGO */}
-            <Container>
+            {!props.logged && <Container>
                 <Nav className="ms-auto">
                     <Nav.Link>
                         <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="bi bi-person-circle" viewBox="0 0 16 16">
@@ -34,7 +37,14 @@ function MyNavbar(props) {
                         </svg>
                     </Nav.Link>
                 </Nav>
-            </Container>
+            </Container>}
+            {props.logged && <Container>
+                <Nav className="ms-auto">
+                    <Nav.Link>
+                        <LogoutButton logout={props.logout} />
+                    </Nav.Link>
+                </Nav>
+            </Container>}
     </Navbar>
     );
 }

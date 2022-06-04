@@ -47,7 +47,7 @@ function RenderFilter(props) {
     return (
         <div>
             {/* NAVIGATION BAR */}
-            <MyNavbar />
+            <MyNavbar logged={props.logged} logout={props.logout}/>
 
             {/* GREETINGS MESSAGE */}
             <GreetingsOnFilter text={props.filter}/>

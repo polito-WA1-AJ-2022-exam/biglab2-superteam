@@ -35,11 +35,7 @@ class DAO {
         });
     }
 
-    /**
-     *  PRIVATE METHODS
-     */
-
-    #run = (querySQL, params = []) => {
+    run = (querySQL, params = []) => {
         return new Promise((resolve, reject) => {
             this.database.run(querySQL, params, (error) => {
                 if (error) {
@@ -52,7 +48,7 @@ class DAO {
         });
     }
 
-    #get = (querySQL, params = []) => {
+    get = (querySQL, params = []) => {
         return new Promise((resolve, reject) => {
             this.database.get(querySQL, params, (error, row) => {
                 if (error) {
@@ -65,7 +61,7 @@ class DAO {
         });
     }
 
-    #all = (querySQL, params = []) => {
+    all = (querySQL, params = []) => {
         return new Promise((resolve, reject) => {
             this.database.all(querySQL, params, (error, rows) => {
                 if (error) {
@@ -77,149 +73,6 @@ class DAO {
             });
         });
     }
-
-    /**
-     *  PUBLIC METHODS
-     */
-
-    /**
-     * Retrieve the list of films from the DB
-     * --------------------------------------
-     */
-    getFilms = async () => {
-        const querySQL = "SELECT * FROM FILMS";
-        return this.#all(
-            querySQL
-        ).then((result) => {
-            return result;
-        }).catch((error) => {
-            throw new Error(error.message);
-        });
-    }
-
-    /**
-     * Retrieve the film given its ID
-     * ------------------------------
-     * @param {Number} id 
-     */
-    getFilmByID = async (id) => {
-        const querySQL = "SELECT * FROM FILMS WHERE FILMS.id == ?";
-        return this.#get(
-            querySQL,
-            [
-                id
-            ]
-        ).then((result) => {
-            return result;
-        }).catch((error) => {
-            throw new Error(error.message);
-        });
-    }
-
-    /**
-     * Retrieve lastID of film inserted in the DB
-     * ------------------------------------------
-     */
-    getLastID = async () => {
-        const querySQL = "SELECT MAX(id) AS lastID FROM films";
-        return this.#get(
-            querySQL
-        ).then((result) => {
-            return result.lastID;
-        }).catch((error) => {
-            throw new Error(error.message);
-        });
-    }
-
-    /**
-     * Create a new film in the DB
-     * ---------------------------
-     * @param {Number} id 
-     * @param {JSON} filmObject 
-     */
-    newFilm = async (id, filmObject) => {
-        const querySQL = "INSERT INTO films(id, title, favorite, watchdate, rating, user) VALUES (?, ?, ?, ?, ?, 1)";
-        return this.#run(
-            querySQL,
-            [
-                id,
-                filmObject.title,
-                filmObject.favorite,
-                filmObject.watchdate,
-                filmObject.rating
-            ]
-        ).then((result) => {
-            return result;
-        }).catch((error) => {
-            throw new Error(error.message);
-        });
-    }
-
-    /**
-     * Update the film corresponding to given id in DB
-     * -----------------------------------------------
-     * @param {Number} id 
-     * @param {JSON} newFilmObject 
-     */
-    editFilmByID = async (id, newFilmObject) => {
-        const querySQL = "UPDATE FILMS SET title = ?, favorite = ?, watchdate = ?, rating = ? WHERE id == ?";
-        return this.#run(
-            querySQL,
-            [
-                newFilmObject.newTitle,
-                newFilmObject.newFavorite,
-                newFilmObject.newWatchdate,
-                newFilmObject.newRating,
-                id
-            ]
-        ).then((result) => {
-            return result;
-        }).catch((error) => {
-            throw new Error(error.message);
-        });
-    }
-
-    /**
-     * Update the film favorite field corresponding to 
-     * given id in DB
-     * -----------------------------------------------
-     * @param {Number} id 
-     * @param {Number} newFavorite 
-     */
-    editFilmFavoriteByID = async (id, newFavorite) => {
-        const querySQL = "UPDATE FILMS SET favorite = ? WHERE id == ?";
-        return this.#run(
-            querySQL,
-            [
-                newFavorite,
-                id
-            ]
-        ).then((result) => {
-            return result;
-        }).catch((error) => {
-            throw new Error(error.message);
-        });
-    }
-
-    /**
-     * Remove a film specified by ID from DB
-     * -------------------------------------
-     * @param {Number} id 
-     */
-    removeFilm = async (id) => {
-        const querySQL = "DELETE FROM FILMS WHERE FILMS.id == ?";
-        return this.#run(
-            querySQL,
-            [
-                id
-            ]
-        ).then((result) => {
-            return result;
-        }).catch((error) => {
-            throw new Error(error.message);
-        });
-    }
-
 }
 
 module.exports = DAO;

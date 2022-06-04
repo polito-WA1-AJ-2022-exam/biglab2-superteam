@@ -1,5 +1,8 @@
 'use strict';
-const dayjs=require('dayjs');
+
+/* ---------- IMPORT MODULES ---------- */
+const dayjs     = require('dayjs');
+const daoFilm   = require('../DB/daoFilm');
 
 /* ---------- ERROR MESSAGES ---------- */
 const MESSG_200 = {code: 200, message: 'OK'}
@@ -17,7 +20,7 @@ class FilmController {
      * @param {DAO Object} input_dao 
      */
     constructor (input_dao) {
-        this.dao = input_dao;
+        this.dao = new daoFilm(input_dao);
     }
 
     /**
@@ -25,12 +28,13 @@ class FilmController {
      * ---------------------------------------------
      *                API: GET /films
      * =============================================
+     * @param {Number} userID user identifier of the current session
     */
-    getFilms = async () => {
+    getFilms = async (userID) => {
 
         try {
             /* retrieving films from DB */
-            const films = await this.dao.getFilms();
+            const films = await this.dao.getFilms(userID);
             return {
                 code: 200,
                 message: films
@@ -49,11 +53,12 @@ class FilmController {
      *          API: GET /films/:filter
      * =============================================
      * @param {String} filter
+     * @param {Number} userID user identifier of the current session
     */
-    getFilteredFilms = async (filter) => {
+    getFilteredFilms = async (filter, userID) => {
 
         /* retrieving films from DB */
-        let films = await this.dao.getFilms();
+        let films = await this.dao.getFilms(userID);
 
         /* filtering films */
         if (filter === 'favorites') {
@@ -79,12 +84,13 @@ class FilmController {
      *             API: GET /film/:id
      * =============================================
      * @param {Number} id
+     * @param {Number} userID user identifier of the current session
     */
-    getFilmById = async (id) => {
+    getFilmById = async (id, userID) => {
 
         try {
             /* retrieving film given ID from DB */
-            const film = await this.dao.getFilmByID(id);
+            const film = await this.dao.getFilmByID(id, userID);
             if (film === undefined) {
                 return ERROR_404;
             }
@@ -107,20 +113,16 @@ class FilmController {
      *             API: POST /film
      * =============================================
      * @param {JSON} filmObject 
+     * @param {Number} userID user identifier of the current session
     */
-    newFilm = async (filmObject) => {
+    newFilm = async (filmObject, userID) => {
 
         try {
             /* retrieving lastID */
             const lastID = await this.dao.getLastID();
 
             /* INSERTION IN THE DATABASE */
-            /**
-             * 
-             *  NB: USER IS SET TO 1 AS DEFAULT -------> CHANGE HERE WHEN IMPLEMENTING AUTHENTICATION
-             * 
-             */
-            await this.dao.newFilm(lastID+1, filmObject);
+            await this.dao.newFilm(lastID+1, filmObject, userID);
 
             return MESSG_201;
         } catch (error) {
@@ -138,20 +140,21 @@ class FilmController {
      * ---------------------------------------------
      *             API: PUT /film/:id
      * =============================================
-     * @param {callback} request 
-     * @param {callback} response 
+     * @param {Number} id
+     * @param {JSON} filmObject 
+     * @param {Number} userID user identifier of the current session
     */
-    editFilm = async (id, filmObject) => {
+    editFilm = async (id, filmObject, userID) => {
 
         try {
             /* check if film actually exists in DB */
-            const film = await this.dao.getFilmByID(id);
+            const film = await this.dao.getFilmByID(id, userID);
             if (film === undefined) {
                 return ERROR_404;
             }
 
             /* update film in DB */
-            await this.dao.editFilmByID(id, filmObject);
+            await this.dao.editFilmByID(id, filmObject, userID);
 
             return MESSG_200;
         } catch (error) {
@@ -167,18 +170,19 @@ class FilmController {
      * =============================================
      * @param {Number} id 
      * @param {Number} newFavorite 
+     * @param {Number} userID user identifier of the current session
     */
-    setFilmFavorite = async (id, newFavorite) => {
+    setFilmFavorite = async (id, newFavorite, userID) => {
 
         try {
             /* check if film actually exists in DB */
-            const film = await this.dao.getFilmByID(id);
+            const film = await this.dao.getFilmByID(id, userID);
             if (film === undefined) {
                 return ERROR_404;
             }
 
             /* update film in DB */
-            await this.dao.editFilmFavoriteByID(id, newFavorite);
+            await this.dao.editFilmFavoriteByID(id, newFavorite, userID);
 
             return MESSG_200;
 
@@ -194,12 +198,13 @@ class FilmController {
      *            API: DELETE /film/:id
      * =============================================
      * @param {Number} id 
+     * @param {Number} userID user identifier of the current session
     */
     removeFilm = async (id) => {
 
         try {
             /* remove film from DB */
-            await this.dao.removeFilm(id);
+            await this.dao.removeFilm(id, userID);
 
             return MESSG_204;
         } catch (error) {

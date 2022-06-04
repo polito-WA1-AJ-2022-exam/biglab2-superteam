@@ -15,6 +15,75 @@ class API {
     */
 
     /**
+     * Attempts to log the user in given its credentials inserted 
+     * in the login form
+     * ==========================================================
+     * 
+     * Connection to endpoint: '/api/sessions'
+     */
+    login = async (credentials) => {
+        
+        const url = PREFIX_URL + '/user/sessions';
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include',
+                body: JSON.stringify(credentials)
+            });
+            if (response.ok) {
+
+                /* processing the response */
+                const user = await response.json();
+                return user;
+            } else {
+
+                /* application errors (404, 500, ...) */
+                console.log(response.statusText);
+                const text = await response.text();
+                throw new TypeError(text);
+            }
+        } catch (error) {
+            /* network errors */
+            console.log(error);
+            throw error;
+        }
+    }
+
+    /**
+     * Attempts to log the current user out
+     * ====================================
+     * 
+     * Connection to endpoint: '/api/sessions/current'
+     */
+    logout = async () => {
+        const url = PREFIX_URL + '/user/sessions/current';
+        try {
+            const response = await fetch(url, {
+                method: 'DELETE',
+                credentials: 'include'
+            });
+            if (response.ok) {
+
+                /* processing the response */
+                return null; 
+            } else {
+                
+                /* application errors (404, 500, ...) */
+                console.log(response.statusText);
+                const text = await response.text();
+                throw new TypeError(text);
+            }
+        } catch (error) {
+            /* network errors */
+            console.log(error);
+            throw error;
+        }
+    }
+
+    /**
      * Retrieve the whole list of films from the DB
      * ============================================
      * 
@@ -24,7 +93,9 @@ class API {
 
         const url = PREFIX_URL + '/films';
         try {
-            const response = await fetch(url);
+            const response = await fetch(url, {
+                credentials: 'include'
+            });
             if (response.ok) {
 
                 /* processing the response */
@@ -56,7 +127,9 @@ class API {
 
         const url = PREFIX_URL + '/films/' + filter;
         try {
-            const response = await fetch(url);
+            const response = await fetch(url, {
+                credentials: 'include'
+            });
             if (response.ok) {
                 
                 /* process the response */
@@ -99,7 +172,8 @@ class API {
                 body: JSON.stringify(body),
                 headers: {
                     'Content-Type': 'application/json'
-                }
+                },
+                credentials: 'include'
             });
             if (response.ok) {
                 
@@ -140,7 +214,8 @@ class API {
                 body: JSON.stringify(body),
                 headers: {
                     'Content-Type': 'application/json'
-                }
+                },
+                credentials: 'include'
             });
             if (response.ok) {
 
@@ -177,7 +252,8 @@ class API {
                 body: JSON.stringify(body),
                 headers: {
                     'Content-Type': 'application/json'
-                }
+                },
+                credentials: 'include'
             });
             if (response.ok) {
 
@@ -209,7 +285,8 @@ class API {
         const url = PREFIX_URL + '/film/' + targetID;
         try {
             const response = await fetch(url, {
-                method: 'DELETE'
+                method: 'DELETE',
+                credentials: 'include'
             });
             if (response.ok) {
 
